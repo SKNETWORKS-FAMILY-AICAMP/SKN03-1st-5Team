@@ -1,8 +1,9 @@
+import pandas as pd
+import pymysql
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
-import time
 from bs4 import BeautifulSoup
 
 # 전체 클릭하기
@@ -14,23 +15,8 @@ html = chrome.page_source
 notices = chrome.find_elements(By.CLASS_NAME, value="tabs__btn")
 notices[1].click()    #전체 카테고리 클릭하기
 
-
-############################# 카테고리 class 확인하기#######################################
-
-# 태그 순서 어디로 들어가야 전체 인지 확인하기
-html = chrome.page_source
-soup = BeautifulSoup(html, 'html.parser')
-notices = soup.select(".tabs__btn")
-
-for n in notices:
-    print(n)
-    print(n.get_text())
-
-
-#################################전체 페이지로 들어가기[1번째였음!] - 전체 카테고리로 들어가기#######################
-
-    #질문 추출 함수
-def f_question(a):
+#질문 추출 함수
+def f_question(num : int):
     html = chrome.page_source
     soup = BeautifulSoup(html, 'html.parser')
     notices = soup.select(".cmp-accordion__title")
@@ -40,8 +26,8 @@ def f_question(a):
         r = n.get_text()
         pages_question.append(r)
 
-    #응답 추출 함수
-def f_answer(a):
+#응답 추출 함수
+def f_answer(num : int):
     html = chrome.page_source
     soup = BeautifulSoup(html, 'html.parser')
     notice = soup.select(".faqinner__wrap > div")
@@ -51,9 +37,6 @@ def f_answer(a):
         r = n.get_text()
         pages_answer.append(r)
 
-#3초 기다리자!!
-chrome.implicitly_wait(3)  
-####################################################################################################################
 pages_question=[]
 pages_answer=[]
 
@@ -69,22 +52,15 @@ for j in range(1,5):
     btn[0].click()
 
 kia={'질문':pages_question,
-'답변':pages_answer}
-
-import pandas as pd
-kia = pd.DataFrame(kia)
-kia
-
-
-import pymysql
-
+'답변':pages_answer,
+'식별자':['기아']*200}
+kia_frame = pd.DataFrame(kia)
 con = pymysql.connect(host='localhost', user='root', password='root1234', db='car_registration_status', charset='utf8', autocommit=False) 
 cur = con.cursor(pymysql.cursors.DictCursor)
 
-question = kia['질문']
-answer = kia['답변']
-vender = kia['식별자']
-
+question = kia_frame['질문']
+answer = kia_frame['답변']
+vender = kia_frame['식별자']
 
 for i in range(200):
     answer[i] = answer[i].replace('\'','')
